@@ -1,30 +1,22 @@
 // Multi-Store System Utilities
 // أدوات نظام متعدد المتاجر
 
-// دالة مساعدة لاستخراج subdomain من hostname مع fallback للـ query parameter
+// دالة مساعدة لاستخراج subdomain من query parameter
 function getSubdomain() {
   const urlParams = new URLSearchParams(window.location.search);
-  const querySub = urlParams.get('subdomain');
-  if (querySub && querySub.trim()) return querySub.trim();
-
-  const host = window.location.hostname;
-  const parts = host.split('.');
-
-  // دعم vercel.app: project.vercel.app أو store.project.vercel.app
-  if (host.endsWith('.vercel.app')) {
-    if (parts.length === 3) return 'default';
-    if (parts.length > 3) return parts.slice(0, parts.length - 3).join('.');
-    return 'default';
+  let subdomain = urlParams.get('subdomain');
+  
+  // إذا لم يتم العثور على subdomain، استخدم القيمة الافتراضية
+  if (!subdomain) {
+    subdomain = 'default'; // أو أي قيمة افتراضية تريدها
   }
-
-  // دومين مخصص: store.domain.com
-  if (parts.length > 2) return parts.slice(0, -2).join('.');
-  return 'default';
+  
+  return subdomain;
 }
 
 // دالة مساعدة لجلب معلومات المتجر عبر subdomain
 async function getStoreBySubdomain() {
-  const subdomain = await getSubdomain();
+  const subdomain = getSubdomain();
   console.log('Subdomain detected:', subdomain);
   
   try {
