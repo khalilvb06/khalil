@@ -586,55 +586,16 @@ export function debounce(func, wait) {
 // دالة لإنشاء رابط مع subdomain
 export function createUrlWithSubdomain(path, subdomain) {
   const url = new URL(path, window.location.origin);
-  // لم نعد نضيف subdomain كـ query param لأن القراءة تتم من hostname
+  if (subdomain && subdomain !== 'default') {
+    url.searchParams.set('subdomain', subdomain);
+  }
   return url.toString();
 }
 
-// دالة جديدة للحصول على subdomain من serverless function
-export async function getSubdomainFromServer() {
-  try {
-    const response = await fetch('/api/subdomain');
-    if (response.ok) {
-      const data = await response.json();
-      if (data.success && data.subdomain) {
-        console.log('Subdomain from server:', data.subdomain);
-        return data.subdomain;
-      }
-    }
-  } catch (error) {
-    console.log('Error fetching subdomain from server, falling back to client-side detection:', error);
-  }
-  return null;
-}
-
-// دالة لاستخراج subdomain من hostname مع fallback للـ query param
-export async function getSubdomainFromUrl() {
+// دالة لاستخراج subdomain من URL
+export function getSubdomainFromUrl() {
   const urlParams = new URLSearchParams(window.location.search);
-  const querySub = urlParams.get('subdomain');
-  if (querySub && querySub.trim()) return querySub.trim();
-
-  // محاولة الحصول من serverless function أولاً
-  const serverSubdomain = await getSubdomainFromServer();
-  if (serverSubdomain) {
-    return serverSubdomain;
-  }
-
-  // Fallback للكود القديم
-  const host = window.location.hostname;
-  const parts = host.split('.');
-
-  // دعم vercel.app: project.vercel.app أو store.project.vercel.app
-  if (host.endsWith('.vercel.app')) {
-    // project.vercel.app → لا يوجد subdomain متجر
-    if (parts.length === 3) return 'default';
-    // store.project.vercel.app → subdomain المتجر هو الأجزاء قبل project.vercel.app
-    if (parts.length > 3) return parts.slice(0, parts.length - 3).join('.');
-    return 'default';
-  }
-
-  // دومين مخصص: store.domain.com أو multi.part.domain.com
-  if (parts.length > 2) return parts.slice(0, -2).join('.');
-  return 'default';
+  return urlParams.get('subdomain') || 'default';
 }
 
 // دالة لتهيئة الصفحة
@@ -647,7 +608,7 @@ export async function initializePage() {
     }
 
     // جلب subdomain
-    const subdomain = await getSubdomainFromUrl();
+    const subdomain = getSubdomainFromUrl();
     
     // جلب معلومات المتجر
     const store = await getStoreFromSubdomain(subdomain);
