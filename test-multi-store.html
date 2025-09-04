@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار نظام متعدد المتاجر</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>اختبار نظام متعدد المتاجر</h1>
+        
+        <div class="test-section info">
+            <h3>معلومات الاختبار</h3>
+            <p>هذه الصفحة لاختبار نظام متعدد المتاجر وحل مشكلة 406 (Not Acceptable)</p>
+            <p>URL الحالي: <span id="current-url"></span></p>
+            <p>Subdomain المستخرج: <span id="extracted-subdomain"></span></p>
+        </div>
+
+        <div class="test-section">
+            <h3>اختبار استخراج Subdomain</h3>
+            <button onclick="testSubdomainExtraction()">اختبار استخراج Subdomain</button>
+            <div id="subdomain-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>اختبار جلب معلومات المتجر</h3>
+            <button onclick="testStoreFetch()">اختبار جلب المتجر</button>
+            <div id="store-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>اختبار جلب إعدادات المتجر</h3>
+            <button onclick="testStoreSettings()">اختبار جلب الإعدادات</button>
+            <div id="settings-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>اختبار Supabase مباشر</h3>
+            <button onclick="testDirectSupabase()">اختبار Supabase مباشر</button>
+            <div id="direct-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>روابط الاختبار</h3>
+            <p>جرب هذه الروابط:</p>
+            <ul>
+                <li><a href="?subdomain=electronics" target="_blank">?subdomain=electronics</a></li>
+                <li><a href="?subdomain=test-store" target="_blank">?subdomain=test-store</a></li>
+                <li><a href="?subdomain=default" target="_blank">?subdomain=default</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Supabase -->
+    <script type="module" src="js/server-superbase.js"></script>
+    <script type="module" src="js/multi-store-utils.js"></script>
+    
+    <script>
+        // عرض معلومات الصفحة
+        document.getElementById('current-url').textContent = window.location.href;
+        document.getElementById('extracted-subdomain').textContent = new URLSearchParams(window.location.search).get('subdomain') || 'غير محدد';
+
+        // اختبار استخراج Subdomain
+        async function testSubdomainExtraction() {
+            const resultDiv = document.getElementById('subdomain-result');
+            resultDiv.innerHTML = '<div class="info">جاري الاختبار...</div>';
+            
+            try {
+                const subdomain = window.MultiStoreUtils.getSubdomain();
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h4>تم استخراج Subdomain بنجاح</h4>
+                        <p>القيمة: <strong>${subdomain}</strong></p>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>خطأ في استخراج Subdomain</h4>
+                        <pre>${error.message}</pre>
+                    </div>
+                `;
+            }
+        }
+
+        // اختبار جلب معلومات المتجر
+        async function testStoreFetch() {
+            const resultDiv = document.getElementById('store-result');
+            resultDiv.innerHTML = '<div class="info">جاري الاختبار...</div>';
+            
+            try {
+                const storeData = await window.MultiStoreUtils.getStoreBySubdomain();
+                if (storeData) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>تم جلب معلومات المتجر بنجاح</h4>
+                            <pre>${JSON.stringify(storeData, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>لم يتم العثور على المتجر</h4>
+                            <p>تأكد من وجود المتجر في قاعدة البيانات</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>خطأ في جلب معلومات المتجر</h4>
+                        <pre>${error.message}</pre>
+                    </div>
+                `;
+            }
+        }
+
+        // اختبار جلب إعدادات المتجر
+        async function testStoreSettings() {
+            const resultDiv = document.getElementById('settings-result');
+            resultDiv.innerHTML = '<div class="info">جاري الاختبار...</div>';
+            
+            try {
+                const storeData = await window.MultiStoreUtils.getStoreBySubdomain();
+                if (!storeData) {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>لم يتم العثور على المتجر</h4>
+                            <p>يجب العثور على المتجر أولاً</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const settings = await window.MultiStoreUtils.getStoreSettings(storeData.id);
+                if (settings) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>تم جلب إعدادات المتجر بنجاح</h4>
+                            <pre>${JSON.stringify(settings, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>لم يتم العثور على إعدادات المتجر</h4>
+                            <p>تأكد من وجود إعدادات للمتجر ID: ${storeData.id}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>خطأ في جلب إعدادات المتجر</h4>
+                        <pre>${error.message}</pre>
+                    </div>
+                `;
+            }
+        }
+
+        // اختبار Supabase مباشر
+        async function testDirectSupabase() {
+            const resultDiv = document.getElementById('direct-result');
+            resultDiv.innerHTML = '<div class="info">جاري الاختبار...</div>';
+            
+            try {
+                // اختبار جلب المتاجر
+                const { data: stores, error: storesError } = await supabase
+                    .from('stores')
+                    .select('*');
+                
+                if (storesError) {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>خطأ في جلب المتاجر</h4>
+                            <pre>${JSON.stringify(storesError, null, 2)}</pre>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // اختبار جلب إعدادات المتاجر
+                const { data: settings, error: settingsError } = await supabase
+                    .from('store_settings')
+                    .select('*');
+                
+                if (settingsError) {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>خطأ في جلب إعدادات المتاجر</h4>
+                            <pre>${JSON.stringify(settingsError, null, 2)}</pre>
+                        </div>
+                    `;
+                    return;
+                }
+
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h4>تم اختبار Supabase بنجاح</h4>
+                        <h5>المتاجر الموجودة:</h5>
+                        <pre>${JSON.stringify(stores, null, 2)}</pre>
+                        <h5>إعدادات المتاجر:</h5>
+                        <pre>${JSON.stringify(settings, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>خطأ في اختبار Supabase</h4>
+                        <pre>${error.message}</pre>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
