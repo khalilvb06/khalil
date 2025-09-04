@@ -15,7 +15,8 @@ import {
 
 // دالة للحصول على subdomain الحالي (متاحة عالمياً)
 window.getCurrentSubdomain = function() {
-  return getSubdomainFromUrl();
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get('subdomain') || 'default';
 };
 
 // متغيرات عامة
@@ -46,8 +47,8 @@ function displayProducts(products = filteredProducts) {
     const descr = product.descr ? product.descr.substring(0, 50) + '...' : '';
     const offerHtml = processProductOffers(product.offers);
     
-    // إنشاء رابط المنتج بدون تمرير subdomain كـ query param
-    const productUrl = `product.html?id=${product.id}`;
+    // إنشاء رابط المنتج مع subdomain
+    const productUrl = `product.html?subdomain=${subdomain}&id=${product.id}`;
     
     // إظهار المنتجات المتوفرة فقط
     if (product.available !== false) {
@@ -86,8 +87,8 @@ function displayLandingProducts(landingProducts) {
     const image = processProductImage(lp.image);
     const descr = lp.descr ? (lp.descr.substring(0, 50) + '...') : '';
     
-    // إنشاء رابط صفحة الهبوط بدون تمرير subdomain كـ query param
-    const landingUrl = `landingPage.html?id=${lp.id}`;
+    // إنشاء رابط صفحة الهبوط مع subdomain
+    const landingUrl = `landingPage.html?subdomain=${subdomain}&id=${lp.id}`;
     
     list.innerHTML += `
       <div class="col-lg-4 col-md-6 col-sm-6 col-6 d-flex align-items-stretch product-card">
@@ -123,7 +124,7 @@ function displayCategories(categories = allCategories) {
   const subdomain = getSubdomainFromUrl();
 
   categories.forEach(category => {
-    const categoryUrl = `all-products.html?category=${category.id}`;
+    const categoryUrl = `all-products.html?subdomain=${subdomain}&category=${category.id}`;
     container.innerHTML += `
       <div class="col-lg-4 col-md-6 col-sm-6 col-6 d-flex align-items-stretch">
         <div class="card h-100 w-100" style="cursor: pointer;" onclick="window.location.href='${categoryUrl}'">
@@ -225,6 +226,7 @@ function filterProducts() {
 
   // تحديث URL عند تغيير فلتر التصنيف
   const urlParams = new URLSearchParams(window.location.search);
+  const subdomain = getSubdomainFromUrl();
   
   if (categoryId) {
     urlParams.set('category', categoryId);
@@ -232,7 +234,7 @@ function filterProducts() {
     urlParams.delete('category');
   }
   
-  const newUrl = `${window.location.pathname}${urlParams.toString() ? `?${urlParams.toString()}` : ''}`;
+  const newUrl = `${window.location.pathname}?subdomain=${subdomain}${categoryId ? `&category=${categoryId}` : ''}`;
   window.history.replaceState({}, '', newUrl);
 
   // إظهار نتائج البحث
@@ -270,8 +272,11 @@ function updateSearchResults() {
 
 // دالة فلترة المنتجات حسب التصنيف
 function filterByCategory(categoryId, categoryName) {
+  // الحصول على subdomain الحالي
+  const subdomain = getSubdomainFromUrl();
+  
   // الانتقال إلى صفحة المنتجات مع فلتر التصنيف
-  window.location.href = `all-products.html?category=${categoryId}`;
+  window.location.href = `all-products.html?subdomain=${subdomain}&category=${categoryId}`;
 }
 
 // ==================== دوال إعداد الأحداث ====================
@@ -332,7 +337,8 @@ function setupSearchAndFilter() {
       // إزالة معامل category من URL
       const urlParams = new URLSearchParams(window.location.search);
       urlParams.delete('category');
-      const newUrl = `${window.location.pathname}${urlParams.toString() ? `?${urlParams.toString()}` : ''}`;
+      const subdomain = getSubdomainFromUrl();
+      const newUrl = `${window.location.pathname}?subdomain=${subdomain}`;
       window.history.replaceState({}, '', newUrl);
       
       clearFilters.style.transform = 'rotate(360deg)';
@@ -565,7 +571,8 @@ function clearMobileFilters() {
   // إزالة معامل category من URL
   const urlParams = new URLSearchParams(window.location.search);
   urlParams.delete('category');
-  const newUrl = `${window.location.pathname}${urlParams.toString() ? `?${urlParams.toString()}` : ''}`;
+  const subdomain = getSubdomainFromUrl();
+  const newUrl = `${window.location.pathname}?subdomain=${subdomain}`;
   window.history.replaceState({}, '', newUrl);
 }
 
@@ -611,7 +618,7 @@ function syncSidebarFilterValues() {
   }
 }
 
-async function applySidebarFilters() {
+function applySidebarFilters() {
   const sidebarCategoryFilter = document.getElementById('sidebar-category-filter');
   const sidebarPriceFilter = document.getElementById('sidebar-price-filter');
   const sidebarSortFilter = document.getElementById('sidebar-sort-filter');
@@ -630,7 +637,7 @@ async function applySidebarFilters() {
     sortFilter.value = sidebarSortFilter.value;
   }
   
-  await filterProducts();
+  filterProducts();
   closeSidebar();
 }
 
@@ -663,7 +670,8 @@ function clearSidebarFilters() {
   // إزالة معامل category من URL
   const urlParams = new URLSearchParams(window.location.search);
   urlParams.delete('category');
-  const newUrl = `${window.location.pathname}${urlParams.toString() ? `?${urlParams.toString()}` : ''}`;
+  const subdomain = getSubdomainFromUrl();
+  const newUrl = `${window.location.pathname}?subdomain=${subdomain}`;
   window.history.replaceState({}, '', newUrl);
 }
 
