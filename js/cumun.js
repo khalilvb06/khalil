@@ -611,7 +611,7 @@ function syncSidebarFilterValues() {
   }
 }
 
-function applySidebarFilters() {
+async function applySidebarFilters() {
   const sidebarCategoryFilter = document.getElementById('sidebar-category-filter');
   const sidebarPriceFilter = document.getElementById('sidebar-price-filter');
   const sidebarSortFilter = document.getElementById('sidebar-sort-filter');
@@ -630,7 +630,7 @@ function applySidebarFilters() {
     sortFilter.value = sidebarSortFilter.value;
   }
   
-  filterProducts();
+  await filterProducts();
   closeSidebar();
 }
 
