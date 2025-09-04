@@ -663,8 +663,7 @@ function clearSidebarFilters() {
   // إزالة معامل category من URL
   const urlParams = new URLSearchParams(window.location.search);
   urlParams.delete('category');
-  const subdomain = getSubdomainFromUrl();
-  const newUrl = `${window.location.pathname}?subdomain=${subdomain}`;
+  const newUrl = `${window.location.pathname}${urlParams.toString() ? `?${urlParams.toString()}` : ''}`;
   window.history.replaceState({}, '', newUrl);
 }
 

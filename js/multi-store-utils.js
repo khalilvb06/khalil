@@ -24,7 +24,7 @@ function getSubdomain() {
 
 // دالة مساعدة لجلب معلومات المتجر عبر subdomain
 async function getStoreBySubdomain() {
-  const subdomain = getSubdomain();
+  const subdomain = await getSubdomain();
   console.log('Subdomain detected:', subdomain);
   
   try {

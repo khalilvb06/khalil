@@ -590,12 +590,36 @@ export function createUrlWithSubdomain(path, subdomain) {
   return url.toString();
 }
 
+// دالة جديدة للحصول على subdomain من serverless function
+export async function getSubdomainFromServer() {
+  try {
+    const response = await fetch('/api/subdomain');
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success && data.subdomain) {
+        console.log('Subdomain from server:', data.subdomain);
+        return data.subdomain;
+      }
+    }
+  } catch (error) {
+    console.log('Error fetching subdomain from server, falling back to client-side detection:', error);
+  }
+  return null;
+}
+
 // دالة لاستخراج subdomain من hostname مع fallback للـ query param
-export function getSubdomainFromUrl() {
+export async function getSubdomainFromUrl() {
   const urlParams = new URLSearchParams(window.location.search);
   const querySub = urlParams.get('subdomain');
   if (querySub && querySub.trim()) return querySub.trim();
 
+  // محاولة الحصول من serverless function أولاً
+  const serverSubdomain = await getSubdomainFromServer();
+  if (serverSubdomain) {
+    return serverSubdomain;
+  }
+
+  // Fallback للكود القديم
   const host = window.location.hostname;
   const parts = host.split('.');
 
@@ -623,7 +647,7 @@ export async function initializePage() {
     }
 
     // جلب subdomain
-    const subdomain = getSubdomainFromUrl();
+    const subdomain = await getSubdomainFromUrl();
     
     // جلب معلومات المتجر
     const store = await getStoreFromSubdomain(subdomain);
